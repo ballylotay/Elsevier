@@ -4,6 +4,7 @@ import { auth0, isAuth0Configured } from "@/lib/auth0";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Inspector, type InspectorData } from "@/components/inspector";
 import { buttonClass } from "@/components/ui/button";
+import type { CourseExchange } from "@/lib/course-access";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,8 @@ const DEMO_USER = {
   updated_at: new Date().toISOString(),
 };
 
-export default async function InspectorPage() {
+export default async function InspectorPage({ searchParams }: { searchParams: Promise<{ launch_error?: string }> }) {
+  const { launch_error: launchError } = await searchParams;
   let data: InspectorData;
 
   if (auth0) {
@@ -32,9 +34,10 @@ export default async function InspectorPage() {
       scope: t.scope ?? process.env.AUTH0_SCOPE ?? null,
       audience: t.audience ?? process.env.AUTH0_AUDIENCE ?? null,
       expiresAt: t.expiresAt ?? null,
+      courseExchange: (session.courseExchange as CourseExchange | undefined) ?? null,
     };
   } else {
-    data = { demo: true, user: DEMO_USER, idToken: null, accessToken: null, refreshToken: null, scope: "openid profile email offline_access", audience: null, expiresAt: null };
+    data = { demo: true, user: DEMO_USER, idToken: null, accessToken: null, refreshToken: null, scope: "openid profile email offline_access", audience: null, expiresAt: null, courseExchange: null };
   }
 
   return (
@@ -45,6 +48,14 @@ export default async function InspectorPage() {
           <p className="text-slate-500">Everything Auth0 issued for this session, for demo purposes only.</p>
         </div>
       </div>
+      {launchError && (
+        <Card className="mb-6 border-red-300 bg-red-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-900"><AlertTriangle className="h-4 w-4" />Course access denied</CardTitle>
+            <CardDescription className="text-red-800">{launchError}</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
       {data.demo && (
         <Card className="mb-6 border-amber-300 bg-amber-50">
           <CardHeader>

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CodeBlock, CopyButton, JsonBlock } from "@/components/code-block";
 import { decodeJwt } from "@/lib/jwt";
 import { LtiFlow } from "@/components/lti-flow";
+import type { CourseExchange } from "@/lib/course-access";
 
 export type InspectorData = {
   demo: boolean;
@@ -18,6 +19,7 @@ export type InspectorData = {
   scope: string | null;
   audience: string | null;
   expiresAt: number | null;
+  courseExchange: CourseExchange | null;
 };
 
 const NS = "https://elsevier.com/";
@@ -193,11 +195,12 @@ export function Inspector({ data }: { data: InspectorData }) {
       <Card>
         <CardHeader><CardTitle>Token Inspector</CardTitle></CardHeader>
         <CardContent>
-          <Tabs defaultValue="id">
+          <Tabs defaultValue={data.courseExchange ? "exchange" : "id"}>
             <TabsList>
               <TabsTrigger value="id">ID Token</TabsTrigger>
               <TabsTrigger value="access">Access Token</TabsTrigger>
               <TabsTrigger value="refresh">Refresh Token</TabsTrigger>
+              <TabsTrigger value="exchange">Course Token Exchange</TabsTrigger>
               <TabsTrigger value="flow">LTI 1.3 → Auth0</TabsTrigger>
             </TabsList>
 
@@ -270,6 +273,35 @@ export function Inspector({ data }: { data: InspectorData }) {
                 )}
               </div>
               <p className="text-xs text-slate-500">Calls <code>POST /api/token-details</code>, which performs a server-side refresh_token grant and updates the Access Token tab.</p>
+            </TabsContent>
+
+            <TabsContent value="exchange" className="space-y-6">
+              {data.courseExchange ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <Badge variant="success"><CheckCircle2 className="h-3 w-3" />Exchanged for {data.courseExchange.courseCode || "course"}</Badge>
+                    <Countdown exp={data.courseExchange.expiresAt} />
+                    <Badge variant="outline" className="font-mono">aud: {data.courseExchange.audience}</Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-semibold">1. Original access token <span className="font-normal text-slate-500">(issued to this app, sent as the subject_token)</span></div>
+                    {accessToken ? (accessDecoded.isJwt ? <JwtView token={accessToken} highlight={["iss", "sub", "aud", "exp", "scope", ...customKeys]} /> : <CodeBlock code={accessToken} />) : <Missing>No access token in session.</Missing>}
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-semibold">2. Exchanged third-party token <span className="font-normal text-slate-500">(issued by the course provider&rsquo;s IDP)</span></div>
+                    {data.courseExchange.scope && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {data.courseExchange.scope.split(/\s+/).filter(Boolean).map((s) => <Badge key={s} variant="secondary" className="font-mono">{s}</Badge>)}
+                      </div>
+                    )}
+                    {decodeJwt(data.courseExchange.accessToken).isJwt
+                      ? <JwtView token={data.courseExchange.accessToken} highlight={["iss", "sub", "aud", "exp", "iat", "scope", "azp"]} />
+                      : <CodeBlock code={data.courseExchange.accessToken} />}
+                  </div>
+                </>
+              ) : (
+                <Missing>No course token exchange yet. Click <b>Access Course Material</b> on a course on the home page.</Missing>
+              )}
             </TabsContent>
 
             <TabsContent value="flow"><LtiFlow /></TabsContent>

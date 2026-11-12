@@ -64,7 +64,7 @@ export default async function Home() {
                   <Badge variant="success">Licensed via University</Badge>
                   <Badge variant="secondary">{lms}</Badge>
                 </div>
-                <a href={`/auth/login?returnTo=/inspector&course_code=${code}`} className={buttonClass("default", "md", "w-full")}>Access Course Material</a>
+                <a href={`/api/course-access?course_code=${code}`} className={buttonClass("default", "md", "w-full")}>Access Course Material</a>
               </CardContent>
             </Card>
           ))}
