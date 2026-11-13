@@ -66,6 +66,7 @@ export async function exchangeForPartnerToken(subjectToken: string, courseCode: 
     client_id: env("PARTNER_AUTH0_CLIENT_ID"),
     client_secret: env("PARTNER_AUTH0_CLIENT_SECRET"),
     audience,
+    course_code: courseCode
   });
   if (process.env.PARTNER_AUTH0_SCOPE) body.set("scope", process.env.PARTNER_AUTH0_SCOPE);
 

@@ -166,29 +166,6 @@ export function Inspector({ data }: { data: InspectorData }) {
             {showUser && <div className="mt-2"><JsonBlock value={user} /></div>}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>LTI 1.3 &amp; LMS Context</CardTitle>
-            <CardDescription>Custom claims Auth0 adds to the access and ID tokens for the course you launched.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {hasClaims ? (
-              <dl>
-                {Object.entries(claims).map(([k, v]) => (
-                  <Row key={k} k={LABELS[k] ?? k}>
-                    <span className="font-mono text-xs">{fmt(v)}</span>{" "}
-                    <Badge variant="success">from token</Badge>
-                  </Row>
-                ))}
-              </dl>
-            ) : (
-              <Missing>
-                No <code>https://elsevier.com/*</code> claims in this token yet. Click a course on the home page to launch it with its LTI context.
-              </Missing>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Right column */}
